@@ -3,7 +3,9 @@ import base64
 import hashlib
 import math
 import os
+import socket
 from typing import Union, List
+from urllib.parse import urlparse, urlunparse
 
 import requests.exceptions
 from tqdm import tqdm
@@ -143,7 +145,7 @@ class Create(BaseAligo):
         response = self.post(V2_FILE_GET_UPLOAD_URL, body=body)
         return self._result(response, GetUploadUrlResponse)
 
-    def _put_data(self, file_path: str, part_info: CreateFileResponse, file_size: int) -> Union[BaseFile, Null]:
+    def _put_data(self, file_path: str, part_info: CreateFileResponse, file_size: int, is_internal = False) -> Union[BaseFile, Null]:
         """上传数据"""
         with open(file_path, 'rb') as f:
             progress_bar = tqdm(total=file_size, unit='B', unit_scale=True, colour='#21d789')
@@ -151,7 +153,12 @@ class Create(BaseAligo):
                 part_info_item = part_info.part_info_list[i]
                 data = f.read(Create.__UPLOAD_CHUNK_SIZE)
                 try:
-                    resp = self._session.put(data=data, url=part_info_item.upload_url)
+                    upload_url = part_info_item.upload_url
+                    if is_internal:
+                        parsed_url = urlparse(upload_url)
+                        parsed_url = parsed_url._replace(netloc='ccp-bj29-bj-1592982087.oss-cn-beijing-internal.aliyuncs.com', scheme="http")
+                        upload_url = urlunparse(parsed_url)
+                    resp = self._session.put(data=data, url=upload_url)
                     if resp.status_code == 403:
                         raise requests.exceptions.RequestException(f'upload_url({part_info_item.upload_url}) expired')
                 except requests.exceptions.RequestException:
@@ -262,7 +269,23 @@ class Create(BaseAligo):
             # return self.get_file(GetFileRequest(file_id=part_info.file_id))
             return part_info
 
-        return self._put_data(file_path, part_info, file_size)
+        return self._put_data(file_path, part_info, file_size, self.check_is_internal())
+
+    def check_is_internal(self):
+        try:
+            # 解析域名
+            ip = socket.gethostbyname("ccp-bj29-bj-1592982087.oss-cn-beijing-internal.aliyuncs.com")
+            self._auth.log.info(f"域名解析成功，IP地址为: {ip}")
+            # 尝试建立连接
+            socket.create_connection((ip, 80), timeout=1)
+            self._auth.log.info("内部域名可访问")
+        except socket.gaierror:
+            self._auth.log.info("内部域名解析失败")
+            return False
+        except socket.error:
+            self._auth.log.info("内部域名不可访问")
+            return False
+        return True
 
     def create_by_hash(
             self,
