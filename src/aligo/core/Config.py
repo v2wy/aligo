@@ -1,6 +1,7 @@
 """..."""
 # 主机
 API_HOST = 'https://api.aliyundrive.com'
+# API_HOST = 'https://api.alipan.com'
 AUTH_HOST = 'https://auth.aliyundrive.com'
 WEBSV_HOST = 'https://websv.aliyundrive.com'
 PASSPORT_HOST = 'https://passport.aliyundrive.com'
@@ -66,6 +67,7 @@ ADRIVE_V1_ALBUM_DELETE = '/adrive/v1/album/delete'
 ADRIVE_V1_ALBUM_GET = '/adrive/v1/album/get'
 ADRIVE_V1_ALBUM_CREATE = '/adrive/v1/album/create'
 ADRIVE_V1_ALBUM_LIST_FILES = '/adrive/v1/album/list_files'
+ADRIVE_V1_ALBUM_LIST = '/adrive/v1/album/list'
 ADRIVE_V1_ALBUM_UPDATE = '/adrive/v1/album/update'
 ADRIVE_V1_ALBUM_ADD_FILES = '/adrive/v1/album/add_files'
 
@@ -92,6 +94,7 @@ RECOMMEND_V1_SHARELINK_SEARCH = '/recommend/v1/shareLink/search'
 ADRIVE_V2_FILE_LIST_BY_SHARE = '/adrive/v2/file/list_by_share'
 ADRIVE_V2_FILE_GET_BY_SHARE = '/adrive/v2/file/get_by_share'
 ADRIVE_V1_SHARE_CREATE = '/adrive/v1/share/create'
+V2_FILE_GET_SHARE_LINK_VIDEO_PREVIEW_PLAY_INFO = '/v2/file/get_share_link_video_preview_play_info'
 
 # 批量操作
 V3_BATCH = '/v3/batch'
@@ -118,8 +121,9 @@ CLIENT_ID = '25dzX3vbYqktVxyX'
 UNI_PARAMS = {'appName': 'aliyun_drive'}
 UNI_HEADERS = {
     'Referer': 'https://aliyundrive.com',
-    'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                   'Chrome/91.0.4472.114 Safari/537.36'),
+    # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
+    'User-Agent': 'AliApp(AYSD/5.8.0) com.alicloud.databox/37029260 Channel/36176927979800@rimet_android_5.8.0 language/zh-CN /Android Mobile/Xiaomi Redmi',
     # 没有此请求头，list file 获取不到 download_url 字段，url 不支持断点续传
-    'x-canary': 'client=web,app=adrive,version=v4.1.0',
+    # 'x-canary': 'client=web,app=adrive,version=v4.1.0',
+    'x-canary': 'client=Android,app=adrive,version=v5.8.0',
 }

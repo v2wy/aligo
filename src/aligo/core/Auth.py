@@ -88,6 +88,7 @@ class Auth:
             email: EMailConfig = None,
             request_failed_delay: float = 3,
             requests_timeout: float = None,
+            request_interval: int = 0,
     ):
         """扫描二维码登录"""
 
@@ -102,6 +103,7 @@ class Auth:
             email: EMailConfig = None,
             request_failed_delay: float = 3,
             requests_timeout: float = None,
+            request_interval: int = 0,
     ):
         """refresh_token 登录"""
 
@@ -118,6 +120,7 @@ class Auth:
             requests_timeout: float = None,
             login_timeout: float = None,
             re_login: bool = True,
+            request_interval: int = 0,
     ):
         """..."""
 
@@ -134,6 +137,7 @@ class Auth:
             requests_timeout: float = None,
             login_timeout: float = None,
             re_login: bool = True,
+            request_interval: int = 0,
     ):
         """登录验证
 
@@ -148,17 +152,19 @@ class Auth:
         :param requests_timeout: same as requests timeout
         :param login_timeout: 登录超时时间，单位：秒
         :param re_login: refresh_token 失效后是否继续登录（弹出二维码或邮件，需等待） fix #73
+        :param request_interval: 每次请求等待的时间，避免请求频繁触发风控
         """
         self._name_name = name
         self._name = aligo_config_folder.joinpath(f'{name}.json')
         self._port = port
         self._webServer: HTTPServer = None  # type: ignore
         self._email = email
-        self.log = logging.getLogger('aligo')
+        self.log = logging.getLogger(name)
         self._request_failed_delay = request_failed_delay
         self._requests_timeout = requests_timeout
         self._login_timeout = LoginTimeout(login_timeout)
         self._re_login = re_login
+        self._request_interval = request_interval
 
         fmt = f'%(asctime)s.%(msecs)03d {name}.%(levelname)s %(message)s'
 
@@ -292,10 +298,11 @@ class Auth:
             if self._email:
                 self._send_email(qr_link)
         else:
-            qrcode_png = self._show(qr_link)
-            if qrcode_png:
-                self.log.info(f'二维码图片文件 {qrcode_png}')
-        self.log.info('等待扫描二维码')
+            self.log.info('等待扫描二维码，扫码结束后关闭二维码窗口')
+            self._show(qr_link)
+            # qrcode_png = self._show(qr_link)
+            # if qrcode_png:
+            #     self.log.info(f'二维码图片文件 {qrcode_png}')
 
         while True:
             response = self.session.post(
@@ -320,6 +327,8 @@ class Auth:
                 return response
             else:
                 self.log.warning('未知错误 可能二维码已经过期')
+                if self._webServer:
+                    self._webServer.shutdown()
                 self.raise_error_log(response)
             time.sleep(3)
             self._login_timeout.check_timeout()
@@ -371,6 +380,10 @@ class Auth:
     def request(self, method: str, url: str, params: Dict = None,
                 headers: Dict = None, data=None, body: Dict = None) -> requests.Response:
         """统一请求方法"""
+        #
+        if self._request_interval:
+            time.sleep(self._request_interval)
+
         # 删除值为None的键
         if body is not None:
             body = {k: v for k, v in body.items() if v is not None}
@@ -501,6 +514,7 @@ class Auth:
         qr_img.get_image()
         qr_img_path = tempfile.mktemp()
         qr_img.save(qr_img_path)
+        # noinspection PyTypeChecker
         self._webServer = HTTPServer(('0.0.0.0', self._port), LoginServer)
         self._webServer.qrData = open(qr_img_path, 'rb').read()
         os.remove(qr_img_path)

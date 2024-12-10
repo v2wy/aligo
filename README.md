@@ -20,6 +20,12 @@ pip install -U aligo
 pip install git+https://github.com/foyoux/aligo.git
 ```
 
+> **Notes：** 最近官方更新了接口，导致 `get_file_list` 无法直接获取下载链接，现在需要单独使用 `get_download_url` 接口获取下载链接。
+> 
+> 对于不常用（没有封装）的接口，可以直接通过 `self.post` 方法直接发送请求。
+>
+> 接口变动较多，有问题请反馈，我会尽快修复。
+
 ## 快速入门
 
 ```python
@@ -125,8 +131,10 @@ from aligo import set_config_folder, Aligo
 if __name__ == '__main__':
     # 创建 Aligo 对象前，先设置配置文件目录，默认是 <用户目录>/.aligo
     set_config_folder('/home/aligo')
-    # 会创建 /home/aligo/一号服务器.json 配置文件
-    ali = Aligo(name='一号服务器')
+    # 会创建 /home/aligo/小号1.json 配置文件
+    ali1 = Aligo(name='小号1')
+    # 会创建 /home/aligo/小号2.json 配置文件
+    ali2 = Aligo(name='小号2')
 ```
 
 ## 关于扩展功能
@@ -162,7 +170,7 @@ if __name__ == '__main__':
     </thead>
     <tbody align="center">
     <tr>
-        <td><img src="http://110.42.175.98/github/aligo/wechat.jpg#qrcode" alt="aligo反馈交流群"/></td>
+        <td><img src="images/wechat.jpg" alt="aligo反馈交流群"/></td>
     </tr>
     </tbody>
     <tfoot align="center">

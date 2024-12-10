@@ -96,8 +96,10 @@ class Download(Core):
             if file_filter(file):
                 continue
             if file.type == 'folder':
-                self.__download_folder(folder_file_id=file.file_id,
-                                       local_folder=os.path.join(local_folder, self._del_special_symbol(file.name)))
+                self.__download_folder(
+                    folder_file_id=file.file_id, drive_id=drive_id,
+                    local_folder=os.path.join(local_folder, self._del_special_symbol(file.name))
+                )
                 continue
             files.append(file)
         self.download_files(files, local_folder=local_folder)
@@ -163,6 +165,10 @@ class Download(Core):
             if file.type == 'folder':
                 raise AligoException('文件类型不对：期待文件，得到的是文件夹')
             file_path = os.path.join(local_folder, file.name)
-            url = file.download_url or file.url
+            url = file.download_url or file.url or self._core_get_download_url(GetDownloadUrlRequest(
+                file_id=file.file_id,
+                drive_id=file.drive_id,
+                file_name=file.name,
+            )).url
 
         return self._core_download_file(file_path, url)
